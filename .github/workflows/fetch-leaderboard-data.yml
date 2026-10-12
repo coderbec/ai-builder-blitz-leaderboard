@@ -1,0 +1,30 @@
+name: Fetch Leaderboard Data
+
+on:
+  schedule:
+    # Run every 5 minutes
+    - cron: '*/5 * * * *'
+  workflow_dispatch: # Allow manual trigger
+
+jobs:
+  fetch-data:
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+      
+      - name: Fetch data from Workato API
+        run: |
+          RESPONSE=$(curl -s -X GET "https://apim.workato.com/becm307/wow-day-v1/get-sheet-updates" \
+            -H "api_token: ${{ secrets.WORKATO_API_KEY }}")
+          echo "$RESPONSE" > leaderboard-data.json
+          cat leaderboard-data.json
+      
+      - name: Commit and push data
+        run: |
+          git config --local user.email "action@github.com"
+          git config --local user.name "GitHub Action"
+          git add leaderboard-data.json
+          git diff-index --quiet HEAD || git commit -m "Update leaderboard data - $(date)"
+          git push
