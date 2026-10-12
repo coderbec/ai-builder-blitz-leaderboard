@@ -1,0 +1,287 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI Builder Blitz Leaderboard</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Arial', sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 40px;
+            color: #333;
+        }
+
+        .banner {
+            margin-bottom: 60px;
+            animation: fadeIn 0.5s ease-in;
+        }
+
+        .banner img {
+            max-width: 100%;
+            height: auto;
+            display: block;
+        }
+
+        .container {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 60px;
+            width: 100%;
+            max-width: 1600px;
+            animation: fadeIn 0.5s ease-in;
+        }
+
+        .table-section {
+            background: white;
+            border-radius: 20px;
+            padding: 40px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+        }
+
+        .table-section h2 {
+            font-size: 48px;
+            color: #667eea;
+            margin-bottom: 30px;
+            text-align: center;
+            font-weight: bold;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 32px;
+        }
+
+        thead {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+
+        th {
+            padding: 25px 20px;
+            text-align: left;
+            font-weight: bold;
+            border-radius: 10px;
+        }
+
+        td {
+            padding: 20px;
+            border-bottom: 2px solid #e0e0e0;
+        }
+
+        tbody tr:last-child td {
+            border-bottom: none;
+        }
+
+        tbody tr:hover {
+            background-color: #f5f5f5;
+            transition: background-color 0.3s ease;
+        }
+
+        .rank {
+            font-weight: bold;
+            color: #667eea;
+            width: 15%;
+        }
+
+        .name {
+            width: 35%;
+        }
+
+        .company {
+            width: 30%;
+            font-size: 28px;
+            color: #666;
+        }
+
+        .duration {
+            width: 20%;
+            font-weight: bold;
+            color: #764ba2;
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+            }
+            to {
+                opacity: 1;
+            }
+        }
+
+        @media (max-width: 1400px) {
+            .container {
+                grid-template-columns: 1fr;
+                gap: 40px;
+            }
+
+            table {
+                font-size: 28px;
+            }
+
+            .table-section h2 {
+                font-size: 40px;
+            }
+        }
+
+        .loading {
+            text-align: center;
+            color: white;
+            font-size: 40px;
+        }
+    </style>
+</head>
+<body>
+    <div class="banner">
+        <img src="AI Builder Blitz Login Screen Graphic 975x300px.png" alt="AI Builder Blitz Banner">
+    </div>
+
+    <div class="container">
+        <div class="table-section">
+            <h2>⚡ Top 10 Fastest</h2>
+            <table>
+                <thead>
+                    <tr>
+                        <th class="rank">#</th>
+                        <th class="name">First Name</th>
+                        <th class="company">Company</th>
+                        <th class="duration">Time</th>
+                    </tr>
+                </thead>
+                <tbody id="topTable">
+                    <tr>
+                        <td colspan="4" class="loading">Loading...</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+
+        <div class="table-section">
+            <h2>🔥 Latest Finishers</h2>
+            <table>
+                <thead>
+                    <tr>
+                        <th class="rank">#</th>
+                        <th class="name">First Name</th>
+                        <th class="company">Company</th>
+                        <th class="duration">Time</th>
+                    </tr>
+                </thead>
+                <tbody id="latestTable">
+                    <tr>
+                        <td colspan="4" class="loading">Loading...</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <script>
+        const SHEET_ID = '1pYnMUhbZAxBENYHq1AgsOgu0KhLsrl-t6vVsVvHQBso';
+        const SHEET_NAME = 'Sheet1';
+        const CSV_URL = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/export?format=csv&gid=0`;
+
+        async function fetchLeaderboardData() {
+            try {
+                const response = await fetch(CSV_URL);
+                const csv = await response.text();
+                return parseCSV(csv);
+            } catch (error) {
+                console.error('Error fetching data:', error);
+                return [];
+            }
+        }
+
+        function parseCSV(csv) {
+            const lines = csv.trim().split('\n');
+            if (lines.length < 2) return [];
+
+            const headers = lines[0].split(',').map(h => h.trim());
+            const data = [];
+
+            for (let i = 1; i < lines.length; i++) {
+                const values = lines[i].split(',').map(v => v.trim());
+                if (values.length < headers.length) continue;
+
+                const row = {};
+                headers.forEach((header, index) => {
+                    row[header] = values[index];
+                });
+
+                if (row['First Name'] && row['Company'] && row['DurationNumber']) {
+                    data.push(row);
+                }
+            }
+
+            return data;
+        }
+
+        function formatDuration(seconds) {
+            const secs = parseInt(seconds);
+            if (isNaN(secs)) return 'N/A';
+            
+            const mins = Math.floor(secs / 60);
+            const secsRemainder = secs % 60;
+            
+            if (mins > 0) {
+                return `${mins}m ${secsRemainder}s`;
+            }
+            return `${secsRemainder}s`;
+        }
+
+        async function updateLeaderboard() {
+            const data = await fetchLeaderboardData();
+
+            // Sort by DurationNumber for top 10
+            const topData = [...data]
+                .sort((a, b) => parseInt(a.DurationNumber) - parseInt(b.DurationNumber))
+                .slice(0, 10);
+
+            // Get last 5 entries (most recent first)
+            const latestData = [...data].reverse().slice(0, 5);
+
+            // Populate top 10 table
+            const topTable = document.getElementById('topTable');
+            topTable.innerHTML = topData.map((row, index) => `
+                <tr>
+                    <td class="rank">${index + 1}</td>
+                    <td class="name">${row['First Name']}</td>
+                    <td class="company">${row['Company']}</td>
+                    <td class="duration">${formatDuration(row['DurationNumber'])}</td>
+                </tr>
+            `).join('');
+
+            // Populate latest table
+            const latestTable = document.getElementById('latestTable');
+            latestTable.innerHTML = latestData.map((row, index) => `
+                <tr>
+                    <td class="rank">${index + 1}</td>
+                    <td class="name">${row['First Name']}</td>
+                    <td class="company">${row['Company']}</td>
+                    <td class="duration">${formatDuration(row['DurationNumber'])}</td>
+                </tr>
+            `).join('');
+        }
+
+        // Update immediately and then every 5 seconds
+        updateLeaderboard();
+        setInterval(updateLeaderboard, 5000);
+
+        // Rotate to image page every 30 seconds
+        setTimeout(() => {
+            window.location.href = 'image-rotation.html';
+        }, 30000);
+    </script>
+</body>
+</html>

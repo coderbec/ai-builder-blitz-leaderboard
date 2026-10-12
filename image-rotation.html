@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI Builder Blitz - Image Rotation</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Arial', sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 40px;
+        }
+
+        .image-container {
+            background: white;
+            border-radius: 20px;
+            padding: 40px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            max-width: 90%;
+            max-height: 90%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            animation: fadeIn 0.5s ease-in;
+        }
+
+        .image-container img {
+            max-width: 100%;
+            max-height: 100%;
+            object-fit: contain;
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+            }
+            to {
+                opacity: 1;
+            }
+        }
+
+        .loading {
+            color: white;
+            font-size: 40px;
+            text-align: center;
+        }
+    </style>
+</head>
+<body>
+    <div class="image-container">
+        <div class="loading">Loading presentation...</div>
+    </div>
+
+    <script>
+        const PRESENTATION_ID = '1KhqZKlSSYE6_aZpT9Qdt-c7GIe5C_grZoFyLH-9dvpc';
+
+        // Array to store slide images
+        let slideImages = [];
+        let currentSlideIndex = 0;
+
+        async function fetchPresentationImages() {
+            try {
+                // Google Slides API requires authentication, so we'll use the public export method
+                // Get each slide as an image using the export endpoint
+                const firstImageUrl = `https://docs.google.com/presentation/d/${PRESENTATION_ID}/export/png?slide=1`;
+                
+                // Check if the first slide exists
+                const response = await fetch(firstImageUrl);
+                if (response.ok) {
+                    slideImages.push(firstImageUrl);
+                    
+                    // Try to fetch up to 20 slides
+                    for (let i = 2; i <= 20; i++) {
+                        const imageUrl = `https://docs.google.com/presentation/d/${PRESENTATION_ID}/export/png?slide=${i}`;
+                        try {
+                            const res = await fetch(imageUrl);
+                            if (res.ok) {
+                                slideImages.push(imageUrl);
+                            } else {
+                                break; // Stop when we get a 404
+                            }
+                        } catch (e) {
+                            break;
+                        }
+                    }
+                }
+
+                if (slideImages.length > 0) {
+                    displayCurrentSlide();
+                } else {
+                    document.querySelector('.image-container').innerHTML = 
+                        '<div class="loading">Unable to load presentation images</div>';
+                }
+            } catch (error) {
+                console.error('Error fetching presentation:', error);
+                document.querySelector('.image-container').innerHTML = 
+                    '<div class="loading">Error loading presentation</div>';
+            }
+        }
+
+        function displayCurrentSlide() {
+            if (slideImages.length === 0) return;
+
+            const img = document.createElement('img');
+            img.src = slideImages[currentSlideIndex];
+            img.onerror = () => {
+                console.error('Failed to load slide image');
+            };
+
+            document.querySelector('.image-container').innerHTML = '';
+            document.querySelector('.image-container').appendChild(img);
+
+            // Move to next slide
+            currentSlideIndex = (currentSlideIndex + 1) % slideImages.length;
+
+            // Show image for 10 seconds, then return to leaderboard
+            setTimeout(() => {
+                window.location.href = 'index.html';
+            }, 10000);
+        }
+
+        // Initialize
+        fetchPresentationImages();
+    </script>
+</body>
+</html>
