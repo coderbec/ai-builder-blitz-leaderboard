@@ -20,7 +20,7 @@ jobs:
       - name: Fetch data from Workato API
         run: |
           RESPONSE=$(curl -s -X GET "https://apim.workato.com/becm307/wow-day-v1/get-sheet-updates" \
-            -H "api_token: ${{ secrets.WORKATO_API_KEY }}")
+            -H "api-token: ${{ secrets.WORKATO_API_KEY }}")
           echo "$RESPONSE" > leaderboard-data.json
           cat leaderboard-data.json
       

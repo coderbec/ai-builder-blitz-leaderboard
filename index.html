@@ -194,24 +194,35 @@
                 const response = await fetch(`leaderboard-data.json?t=${Date.now()}`);
                 if (!response.ok) throw new Error('Failed to load data');
                 const data = await response.json();
-                return Array.isArray(data) ? data : data.data || [];
+                
+                // Transform Workato API format to usable format
+                if (data.rows && Array.isArray(data.rows)) {
+                    return data.rows.map(row => ({
+                        'First Name': row.col_First_name || '',
+                        'Company': row.col_Company || '',
+                        'DurationNumber': row.col_DurationNumber || 0
+                    }));
+                }
+                return [];
             } catch (error) {
                 console.error('Error fetching data:', error);
                 return [];
             }
         }
 
-        function formatDuration(seconds) {
-            const secs = parseInt(seconds);
-            if (isNaN(secs)) return 'N/A';
+        function formatDuration(durationNumber) {
+            // DurationNumber is in days (decimal), convert to seconds
+            const days = parseFloat(durationNumber);
+            if (isNaN(days)) return 'N/A';
             
-            const mins = Math.floor(secs / 60);
-            const secsRemainder = secs % 60;
+            const totalSeconds = Math.round(days * 24 * 60 * 60);
+            const mins = Math.floor(totalSeconds / 60);
+            const secs = totalSeconds % 60;
             
             if (mins > 0) {
-                return `${mins}m ${secsRemainder}s`;
+                return `${mins}m ${secs}s`;
             }
-            return `${secsRemainder}s`;
+            return `${secs}s`;
         }
 
         async function updateLeaderboard() {
@@ -225,7 +236,7 @@
             // Sort by DurationNumber for top 10
             const topData = [...data]
                 .filter(item => item['First Name'] && item['Company'] && item['DurationNumber'])
-                .sort((a, b) => parseInt(a['DurationNumber']) - parseInt(b['DurationNumber']))
+                .sort((a, b) => parseFloat(a['DurationNumber']) - parseFloat(b['DurationNumber']))
                 .slice(0, 10);
 
             // Get last 5 entries (most recent first)
