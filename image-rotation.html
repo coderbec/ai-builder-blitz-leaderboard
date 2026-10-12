@@ -62,74 +62,24 @@
     </div>
 
     <script>
-        const PRESENTATION_ID = '1KhqZKlSSYE6_aZpT9Qdt-c7GIe5C_grZoFyLH-9dvpc';
-
-        // Array to store slide images
-        let slideImages = [];
+        // Local slide images
+        const slideImages = ['Slide1.png'];
         let currentSlideIndex = 0;
-
-        async function fetchPresentationImages() {
-            try {
-                // Google Slides export URLs - try multiple approaches
-                const firstImageUrl = `https://docs.google.com/presentation/d/${PRESENTATION_ID}/export/png?slide=1`;
-                
-                console.log('Attempting to fetch first slide from:', firstImageUrl);
-                
-                // Check if the first slide exists
-                const response = await fetch(firstImageUrl, { mode: 'no-cors' });
-                console.log('First slide response status:', response.status);
-                
-                if (response.status === 200 || response.type === 'opaque') {
-                    slideImages.push(firstImageUrl);
-                    
-                    // Try to fetch up to 20 slides
-                    for (let i = 2; i <= 20; i++) {
-                        const imageUrl = `https://docs.google.com/presentation/d/${PRESENTATION_ID}/export/png?slide=${i}`;
-                        try {
-                            const res = await fetch(imageUrl, { mode: 'no-cors' });
-                            if (res.status === 200 || res.type === 'opaque') {
-                                slideImages.push(imageUrl);
-                            } else {
-                                break;
-                            }
-                        } catch (e) {
-                            console.error(`Error fetching slide ${i}:`, e);
-                            break;
-                        }
-                    }
-                }
-
-                console.log('Loaded slides:', slideImages.length);
-
-                if (slideImages.length > 0) {
-                    displayCurrentSlide();
-                } else {
-                    // Fallback: show a message that no slides could be loaded
-                    document.querySelector('.image-container').innerHTML = 
-                        '<div class="loading" style="color: #ff6b6b; font-size: 32px;">Unable to load presentation images<br><br>Check browser console for details<br><br>Returning to leaderboard in 10 seconds...</div>';
-                    
-                    setTimeout(() => {
-                        window.location.href = 'index.html';
-                    }, 10000);
-                }
-            } catch (error) {
-                console.error('Error fetching presentation:', error);
-                document.querySelector('.image-container').innerHTML = 
-                    '<div class="loading" style="color: #ff6b6b; font-size: 32px;">Error loading presentation<br><br>' + error.message + '<br><br>Returning to leaderboard in 10 seconds...</div>';
-                
-                setTimeout(() => {
-                    window.location.href = 'index.html';
-                }, 10000);
-            }
-        }
 
         function displayCurrentSlide() {
             if (slideImages.length === 0) return;
 
             const img = document.createElement('img');
             img.src = slideImages[currentSlideIndex];
+            img.alt = 'Presentation Slide';
             img.onerror = () => {
-                console.error('Failed to load slide image');
+                console.error('Failed to load slide image:', slideImages[currentSlideIndex]);
+                document.querySelector('.image-container').innerHTML = 
+                    '<div class="loading" style="color: #ff6b6b; font-size: 32px;">Unable to load slide image<br><br>Returning to leaderboard...</div>';
+                
+                setTimeout(() => {
+                    window.location.href = 'index.html';
+                }, 5000);
             };
 
             document.querySelector('.image-container').innerHTML = '';
@@ -145,7 +95,7 @@
         }
 
         // Initialize
-        fetchPresentationImages();
+        displayCurrentSlide();
     </script>
 </body>
 </html>
