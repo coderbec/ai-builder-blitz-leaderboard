@@ -97,18 +97,48 @@
 
         .name {
             width: 35%;
+            color: #333;
         }
 
         .company {
             width: 30%;
             font-size: 28px;
-            color: #f0f0f0;
+            color: #333;
         }
 
         .duration {
             width: 20%;
             font-weight: bold;
+            color: #333;
+        }
+
+        /* Override colors for header row */
+        thead .company,
+        thead .duration {
             color: #ffffff;
+        }
+
+        .timer-section {
+            color: white;
+            font-size: 28px;
+            margin-bottom: 40px;
+            text-align: center;
+            font-weight: bold;
+        }
+
+        .timer-label {
+            font-size: 20px;
+            opacity: 0.9;
+            margin-bottom: 10px;
+        }
+
+        .timer-value {
+            font-size: 48px;
+            background: rgba(255, 255, 255, 0.2);
+            padding: 20px 40px;
+            border-radius: 15px;
+            min-width: 300px;
+            display: inline-block;
         }
 
         @keyframes fadeIn {
@@ -145,6 +175,11 @@
 <body>
     <div class="banner">
         <img src="AI Builder Blitz Login Screen Graphic 975x300px.png" alt="AI Builder Blitz Banner">
+    </div>
+
+    <div class="timer-section">
+        <div class="timer-label">Next Data Refresh In:</div>
+        <div class="timer-value" id="timer">5:00</div>
     </div>
 
     <div class="container">
@@ -275,6 +310,25 @@
                 latestTable.innerHTML = '<tr><td colspan="4" class="loading">No data available</td></tr>';
             }
         }
+
+        // Timer for data refresh
+        let refreshCountdown = 300; // 5 minutes in seconds
+        
+        function updateTimer() {
+            const minutes = Math.floor(refreshCountdown / 60);
+            const seconds = refreshCountdown % 60;
+            document.getElementById('timer').textContent = 
+                `${minutes}:${seconds.toString().padStart(2, '0')}`;
+            
+            refreshCountdown--;
+            if (refreshCountdown < 0) {
+                refreshCountdown = 300; // Reset to 5 minutes
+            }
+        }
+        
+        // Update timer every second
+        updateTimer(); // Initialize immediately
+        setInterval(updateTimer, 1000);
 
         // Update immediately and then every 10 seconds
         updateLeaderboard();
