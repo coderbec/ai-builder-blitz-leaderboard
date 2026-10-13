@@ -226,9 +226,21 @@
         async function fetchLeaderboardData() {
             try {
                 // Add cache busting query parameter to always get fresh data
-                const response = await fetch(`leaderboard-data.json?t=${Date.now()}`);
+                const timestamp = Date.now();
+                const url = `leaderboard-data.json?t=${timestamp}`;
+                console.log(`Fetching leaderboard data from ${url}`);
+                
+                const response = await fetch(url, {
+                    headers: {
+                        'Cache-Control': 'no-cache, no-store, must-revalidate',
+                        'Pragma': 'no-cache',
+                        'Expires': '0'
+                    }
+                });
+                
                 if (!response.ok) throw new Error('Failed to load data');
                 const data = await response.json();
+                console.log('Data fetched successfully. Row count:', data.rows?.length);
                 
                 // Transform Workato API format to usable format
                 if (data.rows && Array.isArray(data.rows)) {
