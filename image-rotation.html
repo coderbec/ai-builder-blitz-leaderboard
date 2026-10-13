@@ -54,9 +54,38 @@
             font-size: 40px;
             text-align: center;
         }
+
+        .timer-overlay {
+            position: fixed;
+            top: 40px;
+            right: 40px;
+            background: rgba(0, 0, 0, 0.7);
+            color: white;
+            padding: 20px 30px;
+            border-radius: 15px;
+            font-size: 28px;
+            font-weight: bold;
+            z-index: 1000;
+        }
+
+        .timer-label {
+            font-size: 16px;
+            opacity: 0.8;
+            margin-bottom: 5px;
+        }
+
+        .timer-countdown {
+            font-size: 36px;
+            color: #4ade80;
+        }
     </style>
 </head>
 <body>
+    <div class="timer-overlay">
+        <div class="timer-label">Next Refresh:</div>
+        <div class="timer-countdown" id="refreshTimer">0:00</div>
+    </div>
+
     <div class="image-container">
         <div class="loading">Loading presentation...</div>
     </div>
@@ -65,6 +94,21 @@
         // Local slide images
         const slideImages = ['Slide1.png'];
         let currentSlideIndex = 0;
+        let refreshCountdown = 10; // 10 seconds on image page
+
+        function updateRefreshTimer() {
+            const timerElement = document.getElementById('refreshTimer');
+            if (timerElement) {
+                const mins = Math.floor(refreshCountdown / 60);
+                const secs = refreshCountdown % 60;
+                timerElement.textContent = `${mins}:${secs.toString().padStart(2, '0')}`;
+            }
+            
+            refreshCountdown--;
+            if (refreshCountdown < 0) {
+                refreshCountdown = 0;
+            }
+        }
 
         function displayCurrentSlide() {
             if (slideImages.length === 0) return;
@@ -94,7 +138,11 @@
             }, 10000);
         }
 
-        // Initialize
+        // Initialize timer
+        updateRefreshTimer();
+        setInterval(updateRefreshTimer, 1000);
+
+        // Initialize slide display
         displayCurrentSlide();
     </script>
 </body>
